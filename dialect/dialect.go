@@ -14,6 +14,9 @@ var (
 	SQLite3 Dialect = sqlite3{}
 	// MSSQL dialect
 	MSSQL Dialect = mssql{}
+
+	// use utc timezone by default
+	Location = time.UTC
 )
 
 const (
