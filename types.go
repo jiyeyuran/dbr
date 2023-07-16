@@ -5,12 +5,31 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
+	"strings"
 	"time"
 )
 
 //
 // Your app can use these Null types instead of the defaults. The sole benefit you get is a MarshalJSON method that is not retarded.
 //
+
+// SQLiteTimestampFormats is timestamp formats understood by both this module
+// and SQLite.  The first format in the slice will be used when saving time
+// values into the database. When parsing a string from a timestamp or datetime
+// column, the formats are tried in order.
+var SQLiteTimestampFormats = []string{
+	// By default, store timestamps with whatever timezone they come with.
+	// When parsed, they will be returned with the same timezone.
+	"2006-01-02 15:04:05.999999999-07:00",
+	"2006-01-02T15:04:05.999999999-07:00",
+	"2006-01-02 15:04:05.999999999",
+	"2006-01-02T15:04:05.999999999",
+	"2006-01-02 15:04:05",
+	"2006-01-02T15:04:05",
+	"2006-01-02 15:04",
+	"2006-01-02T15:04",
+	"2006-01-02",
+}
 
 // NullString is a type that can be null or a string.
 type NullString struct {
@@ -224,23 +243,12 @@ func parseDateTime(str string, loc *time.Location) (time.Time, error) {
 	var t time.Time
 	var err error
 
-	base := "0000-00-00 00:00:00.0000000"
-	switch len(str) {
-	case 10, 19, 21, 22, 23, 24, 25, 26:
-		if str == base[:len(str)] {
-			return t, err
-		}
-		t, err = time.Parse(timeFormat[:len(str)], str)
-	default:
-		err = ErrInvalidTimestring
-		return t, err
-	}
+	str = strings.TrimSuffix(str, "Z")
 
-	// Adjust location
-	if err == nil && loc != time.UTC {
-		y, mo, d := t.Date()
-		h, mi, s := t.Clock()
-		t, err = time.Date(y, mo, d, h, mi, s, t.Nanosecond(), loc), nil
+	for _, format := range SQLiteTimestampFormats {
+		if t, err = time.ParseInLocation(format, str, loc); err == nil {
+			break
+		}
 	}
 
 	return t, err

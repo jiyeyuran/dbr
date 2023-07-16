@@ -24,7 +24,7 @@ func (d mssql) EncodeBool(b bool) string {
 }
 
 func (d mssql) EncodeTime(t time.Time) string {
-	return t.Format("'2006-01-02 15:04:05.999'")
+	return `'` + t.Format(timeFormatWithOffset) + `'`
 }
 
 func (d mssql) EncodeBytes(b []byte) string {

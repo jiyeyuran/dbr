@@ -27,7 +27,7 @@ func (d sqlite3) EncodeBool(b bool) string {
 
 func (d sqlite3) EncodeTime(t time.Time) string {
 	// https://www.sqlite.org/lang_datefunc.html
-	return MySQL.EncodeTime(t)
+	return `'` + t.Format(timeFormatWithOffset) + `'`
 }
 
 func (d sqlite3) EncodeBytes(b []byte) string {
