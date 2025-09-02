@@ -2,12 +2,13 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.17
+      - image: cimg/go:1.21
         environment:
           - DBR_TEST_MYSQL_DSN=root:root@tcp(127.0.0.1:3306)/circle_test
           - DBR_TEST_POSTGRES_DSN=postgres://postgres:mysecretpassword@127.0.0.1:5432/postgres?sslmode=disable
           - DBR_TEST_MSSQL_DSN=sqlserver://sa:qwe123QWE@127.0.0.1/?database=master
           - GO111MODULE=on
+          - FOSSA_API_KEY=486be1298513b278ba3916aa63975d7c
       - image: percona:5.7
         environment:
           - MYSQL_DATABASE=circle_test
@@ -19,7 +20,6 @@ jobs:
         environment:
           - ACCEPT_EULA=Y
           - SA_PASSWORD=qwe123QWE
-    working_directory: /go/src/github.com/gocraft/dbr
     steps:
       - run: |
           curl -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/fossa-cli/master/install-latest.sh | bash
